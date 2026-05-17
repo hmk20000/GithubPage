@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>기도 무브먼트 — 설문 분석 & 플랫폼 방향</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;600&family=DM+Mono:wght@400;500&family=Noto+Sans+KR:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --ink: #1a1917; --ink2: #4a4845; --ink3: #8a8784;
+  --paper: #f5f2ec; --paper2: #ede9e0;
+  --accent: #3d6b4f; --accent2: #8b4f3d; --accent3: #3d4f8b;
+  --gold: #b8956a;
+  --serif: 'Noto Serif KR', Georgia, serif;
+  --sans: 'Noto Sans KR', sans-serif;
+  --mono: 'DM Mono', monospace;
+}
+html, body { width:100%; height:100%; background:var(--ink); overflow:hidden; cursor:none; }
+.cursor { position:fixed; width:8px; height:8px; background:var(--gold); border-radius:50%; pointer-events:none; z-index:9999; transform:translate(-50%,-50%); mix-blend-mode:difference; }
+.cursor-ring { position:fixed; width:32px; height:32px; border:1px solid rgba(184,149,106,0.4); border-radius:50%; pointer-events:none; z-index:9998; transform:translate(-50%,-50%); transition:transform 0.25s ease; }
+#slides { width:100vw; height:100vh; position:relative; overflow:hidden; }
+.slide { position:absolute; inset:0; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:60px 80px; opacity:0; transform:translateY(40px); pointer-events:none; transition:opacity 0.7s cubic-bezier(0.22,1,0.36,1), transform 0.7s cubic-bezier(0.22,1,0.36,1); }
+.slide.active { opacity:1; transform:translateY(0); pointer-events:all; }
+.slide.exit-up { opacity:0; transform:translateY(-40px); }
+.dk { background:var(--ink); }
+.lt { background:var(--paper); }
+.label { font-family:var(--mono); font-size:11px; letter-spacing:0.18em; text-transform:uppercase; color:var(--gold); margin-bottom:16px; }
+.label-g { color:var(--accent); }
+h1 { font-family:var(--serif); font-size:clamp(36px,5vw,62px); font-weight:300; line-height:1.2; letter-spacing:-0.02em; color:var(--paper); }
+h2 { font-family:var(--serif); font-size:clamp(26px,3.2vw,44px); font-weight:300; line-height:1.25; color:var(--ink); }
+h2.d { color:var(--paper); }
+.sub { font-family:var(--sans); font-size:15px; font-weight:300; line-height:1.7; color:var(--ink2); }
+.sub.d { color:rgba(245,242,236,0.5); }
+.rule { width:48px; height:1px; background:var(--gold); margin:20px auto; }
+.rl { width:100%; height:0.5px; background:rgba(184,149,106,0.18); margin:22px 0; }
+
+/* Stats */
+.stat-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:rgba(0,0,0,0.08); border:0.5px solid rgba(0,0,0,0.08); border-radius:4px; overflow:hidden; width:100%; max-width:860px; margin-top:32px; }
+.sc { background:var(--paper2); padding:22px 18px; display:flex; flex-direction:column; gap:6px; }
+.sn { font-family:var(--serif); font-size:38px; font-weight:300; line-height:1; color:var(--accent); }
+.sl { font-family:var(--sans); font-size:12px; font-weight:300; color:var(--ink3); line-height:1.4; }
+.sm { font-family:var(--mono); font-size:10px; color:var(--gold); letter-spacing:0.08em; margin-top:4px; }
+
+/* Insight */
+.ib { border-left:2px solid var(--gold); padding:14px 18px; background:rgba(184,149,106,0.06); border-radius:0 4px 4px 0; margin-top:22px; }
+.it { font-family:var(--serif); font-size:16px; font-weight:300; color:var(--ink); line-height:1.6; }
+
+/* Bar */
+.br { display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+.bl { font-family:var(--sans); font-size:12px; font-weight:300; color:var(--ink2); min-width:148px; text-align:right; }
+.bt { flex:1; height:5px; background:rgba(0,0,0,0.07); border-radius:3px; overflow:hidden; }
+.bf { height:100%; border-radius:3px; transform:scaleX(0); transform-origin:left; transition:transform 0.9s cubic-bezier(0.22,1,0.36,1); }
+.bf.g { background:var(--accent); }
+.bf.r { background:var(--accent2); }
+.bf.n { background:var(--accent3); }
+.bc { font-family:var(--mono); font-size:11px; color:var(--ink3); min-width:28px; }
+.slide.active .bf { transform:scaleX(1); }
+
+/* Donut rows */
+.dr { display:flex; gap:32px; width:100%; max-width:860px; margin-top:26px; }
+.dc { flex:1; }
+.dct { font-family:var(--mono); font-size:10px; letter-spacing:0.12em; color:var(--ink3); margin-bottom:12px; }
+.dis { display:flex; flex-direction:column; gap:9px; }
+.di { display:flex; align-items:center; gap:9px; }
+.dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+.dil { font-family:var(--sans); font-size:12px; font-weight:300; color:var(--ink2); flex:1; }
+.dip { font-family:var(--mono); font-size:11px; color:var(--ink3); }
+
+/* Two col */
+.tc { display:grid; grid-template-columns:1fr 1fr; gap:48px; width:100%; max-width:860px; align-items:start; }
+
+/* Big quote */
+.bq { font-family:var(--serif); font-size:clamp(22px,3vw,36px); font-weight:300; line-height:1.6; color:var(--paper); max-width:660px; text-align:center; }
+.bq em { font-style:normal; color:var(--gold); }
+
+/* Principle cards */
+.pg { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; width:100%; max-width:860px; margin-top:32px; }
+.pc { border:0.5px solid rgba(245,242,236,0.1); border-radius:4px; padding:28px 22px; background:rgba(245,242,236,0.03); display:flex; flex-direction:column; gap:9px; transition:background 0.3s; }
+.pc:hover { background:rgba(245,242,236,0.07); }
+.pn { font-family:var(--mono); font-size:10px; letter-spacing:0.14em; color:var(--gold); opacity:0.55; }
+.pt { font-family:var(--serif); font-size:21px; font-weight:300; color:var(--paper); line-height:1.35; }
+.pb { font-family:var(--sans); font-size:12px; font-weight:300; color:rgba(245,242,236,0.42); line-height:1.65; margin-top:4px; }
+
+/* Hypothesis */
+.hg { display:grid; grid-template-columns:1fr 1fr; gap:1px; background:rgba(245,242,236,0.06); border:0.5px solid rgba(245,242,236,0.06); border-radius:4px; overflow:hidden; width:100%; max-width:740px; margin-top:32px; }
+.hc { padding:26px 24px; display:flex; flex-direction:column; gap:12px; }
+.hc.do { background:rgba(61,107,79,0.08); }
+.hc.dn { background:rgba(245,242,236,0.02); }
+.hcl { font-family:var(--mono); font-size:10px; letter-spacing:0.14em; }
+.hcl.do { color:var(--accent); }
+.hcl.dn { color:rgba(245,242,236,0.22); }
+.hi { display:flex; align-items:flex-start; gap:10px; }
+.hm { font-family:var(--mono); font-size:12px; flex-shrink:0; margin-top:1px; }
+.hm.do { color:var(--accent); }
+.hm.dn { color:rgba(245,242,236,0.18); }
+.ht { font-family:var(--sans); font-size:13px; font-weight:300; line-height:1.55; }
+.ht.do { color:rgba(245,242,236,0.72); }
+.ht.dn { color:rgba(245,242,236,0.28); }
+
+/* MVP flow */
+.mf { display:flex; align-items:stretch; gap:0; width:100%; max-width:800px; margin-top:36px; }
+.mn { flex:1; border:0.5px solid rgba(245,242,236,0.11); border-radius:4px; padding:26px 22px; background:rgba(245,242,236,0.03); display:flex; flex-direction:column; gap:7px; }
+.mn.hi2 { border-color:rgba(61,107,79,0.35); background:rgba(61,107,79,0.06); }
+.mnl { font-family:var(--mono); font-size:10px; letter-spacing:0.14em; color:var(--gold); }
+.mnt { font-family:var(--serif); font-size:20px; font-weight:300; color:var(--paper); line-height:1.3; }
+.mnb { font-family:var(--sans); font-size:12px; font-weight:300; color:rgba(245,242,236,0.42); line-height:1.6; margin-top:4px; }
+.mnd { display:flex; flex-direction:column; gap:5px; margin-top:6px; }
+.mdi { font-family:var(--sans); font-size:12px; font-weight:300; color:rgba(245,242,236,0.48); display:flex; align-items:baseline; gap:8px; }
+.mdi::before { content:'—'; font-family:var(--mono); font-size:10px; color:var(--gold); opacity:0.45; flex-shrink:0; }
+.ma { width:52px; flex-shrink:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; }
+.mal { width:28px; height:0.5px; background:rgba(184,149,106,0.3); }
+.mah { font-family:var(--mono); font-size:13px; color:rgba(184,149,106,0.38); }
+.mat { font-family:var(--mono); font-size:9px; letter-spacing:0.1em; color:rgba(184,149,106,0.3); text-align:center; line-height:1.4; }
+.mnote { width:100%; max-width:800px; margin-top:18px; padding:13px 16px; border:0.5px solid rgba(184,149,106,0.18); border-radius:4px; background:rgba(184,149,106,0.03); font-family:var(--sans); font-size:12px; font-weight:300; color:rgba(245,242,236,0.37); line-height:1.6; }
+.mnote strong { color:rgba(184,149,106,0.65); font-weight:400; }
+
+/* Session flow */
+.sf { display:flex; align-items:flex-start; width:100%; max-width:820px; margin-top:28px; }
+.ss { flex:1; }
+.sb { width:100%; border:0.5px solid rgba(245,242,236,0.1); border-radius:4px; padding:18px 14px; background:rgba(245,242,236,0.03); display:flex; flex-direction:column; gap:5px; min-height:118px; }
+.sb.hi { border-color:rgba(61,107,79,0.38); background:rgba(61,107,79,0.07); }
+.ssn { font-family:var(--mono); font-size:9px; letter-spacing:0.14em; color:var(--gold); opacity:0.55; }
+.sst { font-family:var(--serif); font-size:16px; font-weight:300; color:var(--paper); line-height:1.3; }
+.ssb { font-family:var(--sans); font-size:11px; font-weight:300; color:rgba(245,242,236,0.38); line-height:1.55; margin-top:2px; }
+.sc2 { display:flex; align-items:center; padding:0 4px; padding-top:45px; }
+.scl { flex:1; height:0.5px; background:rgba(184,149,106,0.22); }
+.sca { font-family:var(--mono); font-size:13px; color:rgba(184,149,106,0.28); }
+.stag { font-family:var(--mono); font-size:9px; letter-spacing:0.08em; padding:2px 7px; border-radius:2px; margin-top:5px; display:inline-block; }
+.stag.g { background:rgba(61,107,79,0.12); color:var(--accent); }
+.stag.o { background:rgba(184,149,106,0.1); color:var(--gold); }
+
+/* TODO */
+.tw { width:100%; max-width:640px; margin-top:28px; }
+.ti { display:flex; align-items:flex-start; gap:14px; padding:14px 0; border-bottom:0.5px solid rgba(245,242,236,0.06); cursor:pointer; }
+.ti:last-child { border-bottom:none; }
+.tcb { width:17px; height:17px; border:0.5px solid rgba(245,242,236,0.2); border-radius:3px; flex-shrink:0; margin-top:1px; display:flex; align-items:center; justify-content:center; transition:all 0.2s; }
+.tcb.ck { background:var(--accent); border-color:var(--accent); }
+.tcm { font-size:11px; color:var(--paper); opacity:0; transition:opacity 0.15s; }
+.tcb.ck .tcm { opacity:1; }
+.tcon { flex:1; display:flex; flex-direction:column; gap:3px; }
+.ttt { font-family:var(--sans); font-size:13px; font-weight:300; color:rgba(245,242,236,0.72); line-height:1.4; transition:color 0.2s; }
+.ttt.ck { color:rgba(245,242,236,0.22); text-decoration:line-through; text-decoration-color:rgba(245,242,236,0.15); }
+.tts { font-family:var(--sans); font-size:11px; font-weight:300; color:rgba(245,242,236,0.28); line-height:1.5; }
+.tto { font-family:var(--mono); font-size:10px; color:rgba(184,149,106,0.38); letter-spacing:0.06em; margin-top:2px; }
+.tprog { display:flex; align-items:center; gap:12px; margin-top:18px; }
+.tpt { font-family:var(--mono); font-size:11px; color:rgba(245,242,236,0.22); }
+.tptrack { flex:1; height:2px; background:rgba(245,242,236,0.06); border-radius:1px; overflow:hidden; }
+.tpfill { height:100%; background:var(--accent); border-radius:1px; transition:width 0.4s cubic-bezier(0.22,1,0.36,1); }
+
+/* Cover */
+.cbg { position:absolute; font-family:var(--serif); font-size:clamp(120px,18vw,220px); font-weight:300; color:rgba(245,242,236,0.03); letter-spacing:-0.04em; pointer-events:none; user-select:none; bottom:-20px; left:-10px; white-space:nowrap; }
+.cy { font-family:var(--mono); font-size:11px; letter-spacing:0.2em; color:rgba(184,149,106,0.38); position:absolute; bottom:60px; right:80px; }
+
+/* Nav */
+#nav { position:fixed; bottom:34px; left:50%; transform:translateX(-50%); display:flex; align-items:center; gap:26px; z-index:100; }
+.nd { width:4px; height:4px; border-radius:50%; background:rgba(245,242,236,0.18); transition:all 0.3s; cursor:pointer; }
+.nd.active { width:18px; border-radius:2px; background:var(--gold); }
+.nb { font-family:var(--mono); font-size:11px; letter-spacing:0.12em; color:rgba(245,242,236,0.28); background:none; border:none; cursor:pointer; padding:4px 0; transition:color 0.2s; }
+.nb:hover { color:rgba(245,242,236,0.65); }
+#counter { position:fixed; top:34px; right:56px; font-family:var(--mono); font-size:11px; letter-spacing:0.12em; color:rgba(245,242,236,0.16); z-index:100; }
+</style>
+</head>
+<body>
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="ring"></div>
+<div id="counter"><span id="cur">1</span> / <span id="tot">10</span></div>
+
+<div id="slides">
+
+<!-- 1. Cover -->
+<div class="slide dk active" data-slide="0">
+  <div class="cbg">기도</div>
+  <div style="max-width:660px;width:100%;position:relative;z-index:1;">
+    <p class="label">기도 무브먼트 · 설문 분석 리포트</p>
+    <h1>우리는 왜<br>기도가 어려울까</h1>
+    <div class="rule"></div>
+    <p class="sub d" style="max-width:420px;">177명의 공동체 응답을 바탕으로<br>MVP 플랫폼의 방향을 제안합니다.</p>
+  </div>
+  <p class="cy">2025 · Survey Analysis</p>
+</div>
+
+<!-- 2. 핵심 수치 -->
+<div class="slide lt" data-slide="1">
+  <div style="max-width:860px;width:100%;">
+    <p class="label label-g">01 — 현황 및 분석</p>
+    <h2>기도의 필요성은 안다<br><span style="color:var(--accent);">실천이 문제다</span></h2>
+    <div class="stat-grid">
+      <div class="sc"><span class="sn">177</span><span class="sl">총 응답자</span><span class="sm">명</span></div>
+      <div class="sc"><span class="sn">93%</span><span class="sl">기도 필요성 인식<br>(필요 + 매우 필요)</span><span class="sm">높은 동기</span></div>
+      <div class="sc"><span class="sn">86%</span><span class="sl">기도 전후 차이 체감<br>(느낀다 + 매우)</span><span class="sm">높은 체험</span></div>
+      <div class="sc"><span class="sn">90%</span><span class="sl">기도 모임 참여 의향<br>(적극 + 상황 따라)</span><span class="sm">높은 참여 의지</span></div>
+    </div>
+    <div class="ib">
+      <p class="it">문제는 동기 부족이 아닙니다. 93%가 필요성을 느끼면서도 매일 기도하는 사람은 36%에 불과합니다.</p>
+    </div>
+  </div>
+</div>
+
+<!-- 3. 기도 패턴 -->
+<div class="slide lt" data-slide="2">
+  <div style="max-width:860px;width:100%;">
+    <p class="label label-g">01 — 현황 및 분석</p>
+    <h2>짧고, 혼자, 집에서</h2>
+    <div class="dr">
+      <div class="dc">
+        <p class="dct">기도 빈도</p>
+        <div class="dis">
+          <div class="di"><span class="dot" style="background:var(--accent)"></span><span class="dil">거의 매일</span><span class="dip">64명 · 36%</span></div>
+          <div class="di"><span class="dot" style="background:var(--accent3)"></span><span class="dil">주 1–2회</span><span class="dip">53명 · 30%</span></div>
+          <div class="di"><span class="dot" style="background:var(--gold)"></span><span class="dil">주 3–4회</span><span class="dip">45명 · 25%</span></div>
+          <div class="di"><span class="dot" style="background:rgba(0,0,0,0.15)"></span><span class="dil">거의 안 함</span><span class="dip">13명 · 7%</span></div>
+        </div>
+      </div>
+      <div class="dc">
+        <p class="dct">하루 평균 기도 시간</p>
+        <div class="dis">
+          <div class="di"><span class="dot" style="background:var(--accent)"></span><span class="dil">5–10분</span><span class="dip">99명 · 58%</span></div>
+          <div class="di"><span class="dot" style="background:var(--accent3)"></span><span class="dil">10–30분</span><span class="dip">41명 · 24%</span></div>
+          <div class="di"><span class="dot" style="background:rgba(0,0,0,0.15)"></span><span class="dil">거의 안 함</span><span class="dip">23명 · 14%</span></div>
+          <div class="di"><span class="dot" style="background:var(--gold)"></span><span class="dil">30분 이상</span><span class="dip">6명 · 4%</span></div>
+        </div>
+      </div>
+      <div class="dc">
+        <p class="dct">선호 환경 / 장소</p>
+        <div class="dis">
+          <div class="di"><span class="dot" style="background:var(--accent)"></span><span class="dil">혼자 개인적으로</span><span class="dip">135명 · 76%</span></div>
+          <div class="di"><span class="dot" style="background:var(--accent)"></span><span class="dil">집</span><span class="dip">85명 · 48%</span></div>
+          <div class="di"><span class="dot" style="background:var(--accent3)"></span><span class="dil">교회</span><span class="dip">77명 · 44%</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="rl"></div>
+    <div class="tc">
+      <div>
+        <p class="dct">주로 기도하는 영역</p>
+        <div class="br"><span class="bl">개인 삶 · 진로</span><div class="bt"><div class="bf g" style="width:100%"></div></div><span class="bc">156</span></div>
+        <div class="br"><span class="bl">가족</span><div class="bt"><div class="bf g" style="width:80%"></div></div><span class="bc">125</span></div>
+        <div class="br"><span class="bl">신앙 성장</span><div class="bt"><div class="bf g" style="width:73%"></div></div><span class="bc">114</span></div>
+        <div class="br"><span class="bl">공동체</span><div class="bt"><div class="bf n" style="width:35%"></div></div><span class="bc">55</span></div>
+      </div>
+      <div>
+        <p class="dct">모임 참여 의향</p>
+        <div class="br"><span class="bl">상황에 따라</span><div class="bt"><div class="bf r" style="width:100%"></div></div><span class="bc">134명</span></div>
+        <div class="br"><span class="bl">적극 참여</span><div class="bt"><div class="bf r" style="width:19%"></div></div><span class="bc">25명</span></div>
+        <div class="br"><span class="bl">참여 의향 없음</span><div class="bt"><div class="bf n" style="width:13%"></div></div><span class="bc">18명</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 4. 핵심 인사이트 -->
+<div class="slide dk" data-slide="3">
+  <p class="bq">혼자 기도하고 싶지만<br><em>혼자라는 느낌은 싫다</em></p>
+  <p style="font-family:var(--sans);font-size:13px;font-weight:300;color:rgba(245,242,236,0.28);margin-top:14px;text-align:center;line-height:1.7;">76%가 혼자를 선호하면서 &nbsp;·&nbsp; 동시에 함께할 사람이 가장 필요하다고 말했다</p>
+  <div style="display:flex;gap:48px;margin-top:48px;justify-content:center;">
+    <div style="text-align:center;">
+      <p style="font-family:var(--serif);font-size:32px;font-weight:300;color:var(--gold);line-height:1;">70명</p>
+      <p style="font-family:var(--sans);font-size:12px;font-weight:300;color:rgba(245,242,236,0.32);margin-top:6px;">함께 기도할 사람<br>원한다 — 1위</p>
+    </div>
+    <div style="width:0.5px;background:rgba(245,242,236,0.07);"></div>
+    <div style="text-align:center;">
+      <p style="font-family:var(--serif);font-size:32px;font-weight:300;color:var(--gold);line-height:1;">66명</p>
+      <p style="font-family:var(--sans);font-size:12px;font-weight:300;color:rgba(245,242,236,0.32);margin-top:6px;">기도 리마인드<br>원한다 — 2위</p>
+    </div>
+    <div style="width:0.5px;background:rgba(245,242,236,0.07);"></div>
+    <div style="text-align:center;">
+      <p style="font-family:var(--serif);font-size:32px;font-weight:300;color:var(--gold);line-height:1;">100명</p>
+      <p style="font-family:var(--sans);font-size:12px;font-weight:300;color:rgba(245,242,236,0.32);margin-top:6px;">집중이 안 돼서<br>기도가 어렵다 — 1위</p>
+    </div>
+  </div>
+</div>
+
+<!-- 5. 장벽 & 지원 -->
+<div class="slide lt" data-slide="4">
+  <div style="max-width:860px;width:100%;">
+    <p class="label label-g">01 — 현황 및 분석</p>
+    <h2>무엇이 막고, 무엇이 도움이 될까</h2>
+    <div class="tc" style="margin-top:26px;">
+      <div>
+        <p class="dct">기도가 어려운 이유 (복수 선택)</p>
+        <div class="br"><span class="bl">집중이 안 됨</span><div class="bt"><div class="bf r" style="width:100%"></div></div><span class="bc">100</span></div>
+        <div class="br"><span class="bl">습관이 안 됨</span><div class="bt"><div class="bf r" style="width:73%"></div></div><span class="bc">73</span></div>
+        <div class="br"><span class="bl">너무 바쁨</span><div class="bt"><div class="bf r" style="width:69%"></div></div><span class="bc">69</span></div>
+        <div class="br"><span class="bl">시간 내기 어려움</span><div class="bt"><div class="bf r" style="width:42%"></div></div><span class="bc">42</span></div>
+        <div class="br"><span class="bl">무엇을 기도할지 모름</span><div class="bt"><div class="bf r" style="width:23%"></div></div><span class="bc">23</span></div>
+        <div class="br"><span class="bl">혼자 기도가 어려움</span><div class="bt"><div class="bf r" style="width:16%"></div></div><span class="bc">16</span></div>
+      </div>
+      <div>
+        <p class="dct">공동체에 원하는 지원 (복수 선택)</p>
+        <div class="br"><span class="bl">함께 기도할 사람</span><div class="bt"><div class="bf n" style="width:100%"></div></div><span class="bc">70</span></div>
+        <div class="br"><span class="bl">기도 리마인드</span><div class="bt"><div class="bf n" style="width:94%"></div></div><span class="bc">66</span></div>
+        <div class="br"><span class="bl">정기 기도 모임</span><div class="bt"><div class="bf n" style="width:93%"></div></div><span class="bc">65</span></div>
+        <div class="br"><span class="bl">기도 제목 제공</span><div class="bt"><div class="bf n" style="width:76%"></div></div><span class="bc">53</span></div>
+        <div class="br"><span class="bl">온라인 플랫폼</span><div class="bt"><div class="bf n" style="width:54%"></div></div><span class="bc">38</span></div>
+        <div class="br"><span class="bl">소그룹 기도</span><div class="bt"><div class="bf n" style="width:50%"></div></div><span class="bc">35</span></div>
+      </div>
+    </div>
+    <div class="ib" style="margin-top:18px;">
+      <p class="it">알림 · 함께할 사람 · 정기 모임이 거의 동률. <span style="color:var(--accent2);">사람 + 구조 + 알림의 조합</span>이 필요하다는 신호입니다.</p>
+    </div>
+  </div>
+</div>
+
+<!-- 6. 설계 원칙 -->
+<div class="slide dk" data-slide="5">
+  <div style="max-width:860px;width:100%;">
+    <p class="label">02 — 플랫폼 방향</p>
+    <h2 class="d">세 가지 설계 원칙</h2>
+    <div class="pg">
+      <div class="pc">
+        <span class="pn">원칙 01</span>
+        <span class="pt">혼자지만<br>연결되어 있다</span>
+        <span class="pb">강제적 모임이 아닌, 같은 시간에 각자 기도하는 비동기 연대감. 함께라는 느낌은 실시간이 아니어도 만들 수 있다.</span>
+      </div>
+      <div class="pc">
+        <span class="pn">원칙 02</span>
+        <span class="pt">시작이<br>쉬워야 한다</span>
+        <span class="pb">빈 화면 앞에서 혼자 시작하게 두지 않는다. 알림이 문을 열고, 가이드가 첫 문장을 건넨다.</span>
+      </div>
+      <div class="pc">
+        <span class="pn">원칙 03</span>
+        <span class="pt">기록이<br>남아야 한다</span>
+        <span class="pb">기도한 것이 어떻게 됐는지 돌아볼 수 있어야 다시 돌아온다. 응답 기록이 지속성의 근거가 된다.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 7. MVP 가설 -->
+<div class="slide dk" data-slide="6">
+  <div style="max-width:740px;width:100%;">
+    <p class="label">02 — 플랫폼 방향</p>
+    <h2 class="d">MVP 가설</h2>
+    <p class="sub d" style="margin-top:10px;">먼저 검증할 것과 나중으로 미룰 것을 명확히 구분합니다.</p>
+    <div class="hg">
+      <div class="hc do">
+        <span class="hcl do">✓ &nbsp;지금 검증할 것</span>
+        <div class="hi"><span class="hm do">01</span><span class="ht do">카톡 알림이 실제 기도 행동을 트리거하는가</span></div>
+        <div class="hi"><span class="hm do">02</span><span class="ht do">웹 기도 세션 페이지가 기도 시간을 붙잡아두는가</span></div>
+        <div class="hi"><span class="hm do">03</span><span class="ht do">정해진 루틴이 반복 참여를 만드는가</span></div>
+      </div>
+      <div class="hc dn">
+        <span class="hcl dn">— &nbsp;다음 단계로 미룰 것</span>
+        <div class="hi"><span class="hm dn">·</span><span class="ht dn">커뮤니티 기능 (기도 제목 나눔, 응답 기록)</span></div>
+        <div class="hi"><span class="hm dn">·</span><span class="ht dn">대시보드 및 스트릭 시스템</span></div>
+        <div class="hi"><span class="hm dn">·</span><span class="ht dn">카톡 봇 자동화</span></div>
+        <div class="hi"><span class="hm dn">·</span><span class="ht dn">회원가입 및 개인화</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 8. MVP 구조 -->
+<div class="slide dk" data-slide="7">
+  <div style="max-width:820px;width:100%;">
+    <p class="label">02 — 플랫폼 방향</p>
+    <h2 class="d">MVP 구조<br><span style="font-size:0.58em;color:rgba(245,242,236,0.28);">기술 스택 제로 · 두 컴포넌트</span></h2>
+    <div class="mf">
+      <div class="mn">
+        <span class="mnl">Component 01</span>
+        <span class="mnt">카카오톡 채널</span>
+        <span class="mnb">알림 채널이자 커뮤니티 공간. 자동화 없이 담당자가 수동으로 운영합니다.</span>
+        <div class="mnd">
+          <span class="mdi">정해진 요일·시간에 링크 발송</span>
+          <span class="mdi">오늘의 기도 주제 한 줄 첨부</span>
+          <span class="mdi">담당자 1인 로테이션 운영</span>
+        </div>
+      </div>
+      <div class="ma">
+        <div class="mal"></div>
+        <div class="mah">→</div>
+        <div class="mat">링크<br>클릭</div>
+      </div>
+      <div class="mn hi2">
+        <span class="mnl">Component 02</span>
+        <span class="mnt">웹 기도<br>세션 페이지</span>
+        <span class="mnb">MVP의 유일한 프로덕트. 접속하면 바로 기도를 시작할 수 있는 최소한의 화면.</span>
+        <div class="mnd">
+          <span class="mdi">오늘의 성구 + 기도 주제</span>
+          <span class="mdi">타이머 (5분 / 10분 / 자유)</span>
+          <span class="mdi">종료 화면 (간단한 마무리)</span>
+        </div>
+      </div>
+    </div>
+    <div class="mnote">
+      <strong>수동 운영의 의도</strong> &nbsp;—&nbsp; 자동화보다 먼저 행동 패턴을 검증합니다. 사람들이 링크를 클릭하고 세션을 완료하는 패턴이 확인되면 그때 자동화를 고려합니다.
+    </div>
+  </div>
+</div>
+
+<!-- 9. 웹 기도 세션 플로우 -->
+<div class="slide dk" data-slide="8">
+  <div style="max-width:820px;width:100%;">
+    <p class="label">02 — 플랫폼 방향</p>
+    <h2 class="d">웹 기도 세션 플로우</h2>
+    <p class="sub d" style="margin-top:8px;">링크 클릭 후 기도 완료까지. 이탈 없이 붙잡아두는 최소한의 흐름.</p>
+    <div class="sf">
+      <div class="ss">
+        <div class="sb">
+          <span class="ssn">STEP 01</span>
+          <span class="sst">진입</span>
+          <span class="ssb">카톡 링크 클릭. 로그인 없이 바로 접속. 오늘 날짜와 함께 기도 세션 시작.</span>
+          <span class="stag o">로그인 없음</span>
+        </div>
+      </div>
+      <div class="sc2"><div class="scl"></div><div class="sca">›</div></div>
+      <div class="ss">
+        <div class="sb hi">
+          <span class="ssn">STEP 02</span>
+          <span class="sst">기도 준비</span>
+          <span class="ssb">오늘의 성구 한 구절. 기도 주제 1–2가지. 잠깐 읽고 마음을 모을 시간.</span>
+          <span class="stag g">가이드 프롬프트</span>
+        </div>
+      </div>
+      <div class="sc2"><div class="scl"></div><div class="sca">›</div></div>
+      <div class="ss">
+        <div class="sb hi">
+          <span class="ssn">STEP 03</span>
+          <span class="sst">기도 타이머</span>
+          <span class="ssb">5분 / 10분 / 자유 선택. 화면 단순화. 집중에 방해되는 요소 제거.</span>
+          <span class="stag g">집중 모드</span>
+        </div>
+      </div>
+      <div class="sc2"><div class="scl"></div><div class="sca">›</div></div>
+      <div class="ss">
+        <div class="sb">
+          <span class="ssn">STEP 04</span>
+          <span class="sst">마무리</span>
+          <span class="ssb">짧은 마무리 문구. 오늘 함께 기도한 인원 표시. 카톡방으로 돌아가는 버튼.</span>
+          <span class="stag o">비동기 연대</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 10. TODO -->
+<div class="slide dk" data-slide="9">
+  <div style="max-width:640px;width:100%;">
+    <p class="label">03 — 함께 결정할 것들</p>
+    <h2 class="d">TODO</h2>
+    <p class="sub d" style="margin-top:8px;">클릭해서 체크하며 논의해보세요.</p>
+    <div class="tw">
+      <div class="ti" onclick="tog(this)">
+        <div class="tcb"><span class="tcm">✓</span></div>
+        <div class="tcon">
+          <span class="ttt">알림 담당자 및 운영 요일 · 시간 정하기</span>
+          <span class="tts">누가, 무슨 요일, 몇 시에 카톡방에 링크를 올릴 것인가. 로테이션 가능 여부.</span>
+          <span class="tto">운영팀</span>
+        </div>
+      </div>
+      <div class="ti" onclick="tog(this)">
+        <div class="tcb"><span class="tcm">✓</span></div>
+        <div class="tcon">
+          <span class="ttt">기도 주제 · 성구 준비 담당자 정하기</span>
+          <span class="tts">매주 또는 매일 주제를 누가 준비하는지. 성경 본문 선택 기준.</span>
+          <span class="tto">콘텐츠 담당</span>
+        </div>
+      </div>
+      <div class="ti" onclick="tog(this)">
+        <div class="tcb"><span class="tcm">✓</span></div>
+        <div class="tcon">
+          <span class="ttt">웹 페이지 링크 방식 결정</span>
+          <span class="tts">고정 URL vs 날짜별 새 링크. 고정이 운영이 쉽고, 새 링크는 콘텐츠 업데이트에 유리.</span>
+          <span class="tto">개발 · 운영</span>
+        </div>
+      </div>
+      <div class="ti" onclick="tog(this)">
+        <div class="tcb"><span class="tcm">✓</span></div>
+        <div class="tcon">
+          <span class="ttt">파일럿 운영 기간 합의</span>
+          <span class="tts">몇 주 동안 운영한 뒤 평가할 것인지. 최소 3–4주는 있어야 패턴이 보인다.</span>
+          <span class="tto">전체</span>
+        </div>
+      </div>
+      <div class="ti" onclick="tog(this)">
+        <div class="tcb"><span class="tcm">✓</span></div>
+        <div class="tcon">
+          <span class="ttt">피드백 수집 방법 결정</span>
+          <span class="tts">링크 클릭 수, 세션 완료율, 재참여율 중 무엇을 어떻게 측정할지. 간단한 설문도 고려.</span>
+          <span class="tto">전체</span>
+        </div>
+      </div>
+      <div class="tprog">
+        <span class="tpt" id="tcnt">0 / 5</span>
+        <div class="tptrack"><div class="tpfill" id="tbar" style="width:0%"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /slides -->
+
+<nav id="nav" aria-label="슬라이드 네비게이션">
+  <button class="nb" onclick="go(-1)">← prev</button>
+  <div id="dots" style="display:flex;gap:7px;align-items:center;"></div>
+  <button class="nb" onclick="go(1)">next →</button>
+</nav>
+
+<script>
+// Cursor
+const cur_ = document.getElementById('cursor'), ring_ = document.getElementById('ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;});
+(function a(){cur_.style.left=mx+'px';cur_.style.top=my+'px';rx+=(mx-rx)*.12;ry+=(my-ry)*.12;ring_.style.left=rx+'px';ring_.style.top=ry+'px';requestAnimationFrame(a);})();
+
+// Slides
+const slides=document.querySelectorAll('.slide');
+const N=slides.length;
+document.getElementById('tot').textContent=N;
+const dotsEl=document.getElementById('dots');
+slides.forEach((_,i)=>{
+  const d=document.createElement('div');
+  d.className='nd'+(i===0?' active':'');
+  d.onclick=()=>goTo(i);
+  dotsEl.appendChild(d);
+});
+const getDots=()=>document.querySelectorAll('.nd');
+let c=0;
+
+function goTo(n){
+  if(n===c)return;
+  slides[c].classList.remove('active');
+  slides[c].classList.add('exit-up');
+  const p=c; setTimeout(()=>slides[p].classList.remove('exit-up'),700);
+  c=n; slides[c].classList.add('active');
+  getDots().forEach((d,i)=>d.classList.toggle('active',i===c));
+  document.getElementById('cur').textContent=c+1;
+  setTimeout(()=>{ slides[c].querySelectorAll('.bf').forEach(b=>{b.style.transform='';void b.offsetWidth;}); },80);
+}
+function go(d){goTo(Math.max(0,Math.min(N-1,c+d)));}
+document.addEventListener('keydown',e=>{
+  if(['ArrowRight','ArrowDown',' '].includes(e.key)){e.preventDefault();go(1);}
+  if(['ArrowLeft','ArrowUp'].includes(e.key)){e.preventDefault();go(-1);}
+});
+let tx=0;
+document.addEventListener('touchstart',e=>{tx=e.touches[0].clientX;},{passive:true});
+document.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-tx;if(Math.abs(dx)>40)go(dx<0?1:-1);},{passive:true});
+
+// TODO
+function tog(item){
+  const cb=item.querySelector('.tcb'), tt=item.querySelector('.ttt');
+  const ck=cb.classList.toggle('ck');
+  tt.classList.toggle('ck',ck);
+  const all=document.querySelectorAll('.ti').length;
+  const done=document.querySelectorAll('.tcb.ck').length;
+  document.getElementById('tcnt').textContent=done+' / '+all;
+  document.getElementById('tbar').style.width=(done/all*100)+'%';
+}
+</script>
+</body>
+</html>
