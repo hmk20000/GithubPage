@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>기도 무브먼트</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;600&family=Noto+Sans+KR:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e0f13;
+    --surface: #16181f;
+    --surface2: #1e2029;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --text: #e8e6df;
+    --muted: #7c7a74;
+    --accent: #a89060;
+    --accent2: #c4ae82;
+    --purple: #8b7ec8;
+    --teal: #5aada0;
+    --green: #5a9e6f;
+    --red: #c27070;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans KR', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  /* ── 화면 컨테이너 ── */
+  .app {
+    width: 100%;
+    max-width: 420px;
+    position: relative;
+  }
+
+  .screen {
+    display: none;
+    animation: fadeIn 0.3s ease;
+  }
+  .screen.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ── 공통 카드 ── */
+  .card {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: 20px;
+    padding: 32px 28px;
+  }
+
+  /* ── 상단 네비 ── */
+  .nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 28px;
+  }
+  .nav-title {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 13px;
+    font-weight: 300;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+  }
+  .nav-back {
+    font-size: 12px;
+    color: var(--muted);
+    cursor: pointer;
+    padding: 4px 0;
+  }
+  .nav-back:hover { color: var(--text); }
+
+  /* ── 버튼 ── */
+  .btn {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.02em;
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: #0e0f13;
+  }
+  .btn-primary:hover { background: var(--accent2); }
+  .btn-kakao {
+    background: #FEE500;
+    color: #191919;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+  .btn-kakao:hover { background: #f0d800; }
+  .btn-ghost {
+    background: transparent;
+    color: var(--muted);
+    border: 0.5px solid var(--border2);
+  }
+  .btn-ghost:hover { color: var(--text); border-color: var(--border2); }
+  .btn-danger {
+    background: transparent;
+    color: var(--red);
+    border: 0.5px solid rgba(194,112,112,0.3);
+    font-size: 13px;
+    padding: 10px;
+  }
+  .btn-danger:hover { background: rgba(194,112,112,0.08); }
+  .btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  /* ── 1. 스플래시 ── */
+  #screen-splash .logo {
+    text-align: center;
+    padding: 48px 0 40px;
+  }
+  #screen-splash .logo-mark {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 36px;
+    font-weight: 300;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+    display: block;
+    margin-bottom: 8px;
+  }
+  #screen-splash .logo-sub {
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 0.2em;
+  }
+  #screen-splash .tagline {
+    text-align: center;
+    font-family: 'Noto Serif KR', serif;
+    font-size: 15px;
+    font-weight: 300;
+    color: var(--muted);
+    line-height: 1.8;
+    margin-bottom: 40px;
+  }
+
+  /* ── 2. 홈 ── */
+  .home-header {
+    margin-bottom: 24px;
+  }
+  .home-greeting {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 4px;
+    letter-spacing: 0.05em;
+  }
+  .home-title {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 22px;
+    font-weight: 300;
+    line-height: 1.4;
+  }
+  .together-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface2);
+    border: 0.5px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin-bottom: 24px;
+  }
+  .pulse-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--teal);
+    animation: pulse 2s infinite;
+    flex-shrink: 0;
+  }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.85)} }
+  .together-text {
+    font-size: 12px;
+    color: var(--teal);
+  }
+
+  .menu-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .menu-card {
+    background: var(--surface2);
+    border: 0.5px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .menu-card:hover { border-color: var(--border2); }
+  .menu-card.full { grid-column: 1 / -1; }
+  .menu-card.accent-card {
+    background: rgba(168,144,96,0.12);
+    border-color: rgba(168,144,96,0.25);
+  }
+  .menu-card.accent-card:hover { border-color: rgba(168,144,96,0.5); }
+  .menu-icon {
+    font-size: 20px;
+    margin-bottom: 8px;
+    display: block;
+  }
+  .menu-label {
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--text);
+    display: block;
+    margin-bottom: 2px;
+  }
+  .menu-desc {
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  /* ── 3. 기도 화면 ── */
+  .prayer-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 20px;
+    max-height: 420px;
+    overflow-y: auto;
+  }
+  .prayer-list::-webkit-scrollbar { width: 3px; }
+  .prayer-list::-webkit-scrollbar-track { background: transparent; }
+  .prayer-list::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+  .prayer-item {
+    background: var(--surface2);
+    border: 0.5px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+  }
+  .prayer-item:hover { border-color: var(--border2); }
+  .prayer-item.checked {
+    background: rgba(90,173,160,0.08);
+    border-color: rgba(90,173,160,0.3);
+  }
+  .prayer-item.official {
+    border-color: rgba(168,144,96,0.2);
+  }
+
+  .check-box {
+    width: 20px; height: 20px;
+    border-radius: 6px;
+    border: 1px solid var(--border2);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 2px;
+    transition: all 0.2s;
+  }
+  .prayer-item.checked .check-box {
+    background: var(--teal);
+    border-color: var(--teal);
+  }
+  .check-icon {
+    display: none;
+    color: #fff;
+    font-size: 12px;
+  }
+  .prayer-item.checked .check-icon { display: block; }
+
+  .prayer-content { flex: 1; min-width: 0; }
+  .prayer-tag {
+    font-size: 10px;
+    color: var(--muted);
+    margin-bottom: 3px;
+    letter-spacing: 0.04em;
+  }
+  .prayer-tag.official-tag { color: var(--accent); }
+  .prayer-title {
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--text);
+    line-height: 1.5;
+    margin-bottom: 4px;
+  }
+  .prayer-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .prayer-count {
+    font-size: 10px;
+    color: var(--muted);
+  }
+  .prayer-count span {
+    color: var(--teal);
+    font-weight: 400;
+  }
+
+  .cooldown-bar {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 2px;
+    border-radius: 0 0 12px 12px;
+    background: var(--teal);
+    transform-origin: left;
+    transform: scaleX(0);
+    transition: none;
+  }
+  .prayer-item.cooling .cooldown-bar {
+    animation: cooldown 5s linear forwards;
+  }
+  @keyframes cooldown { from{transform:scaleX(1)} to{transform:scaleX(0)} }
+
+  /* ── 기도제목 추가 폼 ── */
+  .add-form {
+    background: var(--surface2);
+    border: 0.5px solid var(--border2);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 16px;
+    display: none;
+  }
+  .add-form.open { display: block; animation: fadeIn 0.2s ease; }
+  .add-form textarea {
+    width: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 13px;
+    font-weight: 300;
+    resize: none;
+    height: 72px;
+    line-height: 1.6;
+  }
+  .add-form textarea::placeholder { color: var(--muted); }
+  .add-form-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 0.5px solid var(--border);
+  }
+  .anon-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .anon-toggle input { display: none; }
+  .toggle-pill {
+    width: 28px; height: 16px;
+    background: var(--border2);
+    border-radius: 8px;
+    position: relative;
+    transition: background 0.2s;
+  }
+  .toggle-pill::after {
+    content: '';
+    position: absolute;
+    top: 2px; left: 2px;
+    width: 12px; height: 12px;
+    background: #fff;
+    border-radius: 50%;
+    transition: transform 0.2s;
+  }
+  .anon-toggle input:checked + .toggle-pill { background: var(--accent); }
+  .anon-toggle input:checked + .toggle-pill::after { transform: translateX(12px); }
+  .add-submit {
+    background: var(--accent);
+    color: #0e0f13;
+    border: none;
+    border-radius: 8px;
+    padding: 7px 16px;
+    font-size: 12px;
+    font-family: 'Noto Sans KR', sans-serif;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .add-submit:hover { background: var(--accent2); }
+
+  .prayer-actions {
+    display: flex;
+    gap: 8px;
+  }
+  .btn-add {
+    flex: 1;
+    background: var(--surface2);
+    border: 0.5px dashed var(--border2);
+    border-radius: 12px;
+    padding: 12px;
+    font-size: 12px;
+    font-family: 'Noto Sans KR', sans-serif;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .btn-add:hover { color: var(--text); border-color: var(--accent); }
+
+  /* ── 4. 내 기도제목 ── */
+  .my-item {
+    background: var(--surface2);
+    border: 0.5px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 8px;
+  }
+  .my-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 6px;
+  }
+  .my-item-title {
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 1.5;
+    flex: 1;
+    margin-right: 12px;
+  }
+  .my-item-stats {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .stat-badge {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(90,173,160,0.1);
+    border: 0.5px solid rgba(90,173,160,0.2);
+    border-radius: 20px;
+    padding: 3px 8px;
+    font-size: 11px;
+    color: var(--teal);
+  }
+  .my-item-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .my-item-date { font-size: 11px; color: var(--muted); }
+  .my-item-actions { display: flex; gap: 8px; }
+  .action-link {
+    font-size: 11px;
+    color: var(--muted);
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .action-link:hover { color: var(--text); }
+  .action-link.answered { color: var(--green); }
+  .answered-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(90,158,111,0.12);
+    border: 0.5px solid rgba(90,158,111,0.3);
+    border-radius: 20px;
+    padding: 2px 8px;
+    font-size: 10px;
+    color: var(--green);
+  }
+
+  /* ── 5. 완료 화면 ── */
+  .complete-center {
+    text-align: center;
+    padding: 20px 0 32px;
+  }
+  .complete-icon {
+    font-size: 48px;
+    display: block;
+    margin-bottom: 20px;
+    animation: scaleIn 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  @keyframes scaleIn { from{transform:scale(0)} to{transform:scale(1)} }
+  .complete-title {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 20px;
+    font-weight: 300;
+    margin-bottom: 10px;
+    line-height: 1.5;
+  }
+  .complete-sub {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.7;
+    margin-bottom: 28px;
+  }
+  .complete-stats {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    margin-bottom: 32px;
+  }
+  .complete-stat {
+    text-align: center;
+  }
+  .complete-stat-num {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 28px;
+    font-weight: 300;
+    color: var(--accent);
+    display: block;
+    margin-bottom: 4px;
+  }
+  .complete-stat-label {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+  }
+
+  /* ── 토스트 ── */
+  .toast {
+    position: fixed;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--surface2);
+    border: 0.5px solid var(--border2);
+    border-radius: 100px;
+    padding: 10px 20px;
+    font-size: 12px;
+    color: var(--text);
+    opacity: 0;
+    transition: all 0.3s;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 100;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* ── 구분선 ── */
+  .divider {
+    height: 0.5px;
+    background: var(--border);
+    margin: 20px 0;
+  }
+
+  /* ── 섹션 레이블 ── */
+  .section-label {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ── 스플래시 / 로그인 ── -->
+  <div id="screen-splash" class="screen active">
+    <div class="card">
+      <div class="logo">
+        <span class="logo-mark">기도</span>
+        <span class="logo-sub">PRAYER MOVEMENT</span>
+      </div>
+      <p class="tagline">혼자이지만 함께<br>같은 시간, 같은 마음으로</p>
+      <button class="btn btn-kakao" onclick="doLogin()">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+          <path d="M9 1.5C4.86 1.5 1.5 4.14 1.5 7.38c0 2.07 1.32 3.9 3.33 4.98L4.05 14.7c-.06.21.15.39.33.27L8.1 12.3c.3.03.6.06.9.06 4.14 0 7.5-2.64 7.5-5.88S13.14 1.5 9 1.5z" fill="#191919"/>
+        </svg>
+        카카오 로그인
+      </button>
+    </div>
+  </div>
+
+  <!-- ── 홈 (소속 없음) ── -->
+  <div id="screen-home-guest" class="screen">
+    <div class="card">
+      <div class="nav">
+        <span class="nav-title">기도 무브먼트</span>
+        <span class="nav-back" onclick="goLogout()">로그아웃</span>
+      </div>
+      <div class="home-header">
+        <div class="home-greeting">안녕하세요, 김이안님</div>
+        <div class="home-title">아직 공동체에<br>소속되지 않았어요</div>
+      </div>
+      <div style="background:var(--surface2);border:0.5px solid var(--border);border-radius:14px;padding:20px;text-align:center;margin-bottom:20px;">
+        <span style="font-size:32px;display:block;margin-bottom:12px;">🙏</span>
+        <p style="font-size:13px;color:var(--muted);line-height:1.7;">리더에게 초대 코드를 받거나<br>기도 링크로 접속해주세요</p>
+      </div>
+      <button class="btn btn-ghost" onclick="goHome()">초대 코드 입력</button>
+    </div>
+  </div>
+
+  <!-- ── 홈 (소속 있음) ── -->
+  <div id="screen-home" class="screen">
+    <div class="card">
+      <div class="nav">
+        <span class="nav-title">기도 무브먼트</span>
+        <span class="nav-back" onclick="goLogout()">로그아웃</span>
+      </div>
+      <div class="home-header">
+        <div class="home-greeting">2025년 6월 24일 화요일</div>
+        <div class="home-title">씨드(Seed)<br>기도 모임</div>
+      </div>
+      <div class="together-bar">
+        <div class="pulse-dot"></div>
+        <span class="together-text">지금 14명이 함께 기도 중</span>
+      </div>
+      <div class="menu-grid">
+        <div class="menu-card accent-card full" onclick="goPray()">
+          <span class="menu-icon">🕊</span>
+          <span class="menu-label">지금 기도하기</span>
+          <span class="menu-desc">오늘의 기도제목 보기</span>
+        </div>
+        <div class="menu-card" onclick="goMyPrayers()">
+          <span class="menu-icon">📋</span>
+          <span class="menu-label">내 기도제목</span>
+          <span class="menu-desc">내가 올린 목록</span>
+        </div>
+        <div class="menu-card">
+          <span class="menu-icon">📅</span>
+          <span class="menu-label">기도 기록</span>
+          <span class="menu-desc">12일째 연속</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 기도 화면 ── -->
+  <div id="screen-pray" class="screen">
+    <div class="card">
+      <div class="nav">
+        <span class="nav-back" onclick="goHome()">← 홈</span>
+        <span class="nav-title">오늘의 기도</span>
+        <span></span>
+      </div>
+
+      <div class="together-bar">
+        <div class="pulse-dot"></div>
+        <span class="together-text" id="live-count">지금 14명이 함께 기도 중</span>
+      </div>
+
+      <!-- 기도제목 추가 폼 -->
+      <div class="add-form" id="add-form">
+        <textarea id="new-prayer-text" placeholder="기도제목을 입력해주세요..."></textarea>
+        <div class="add-form-footer">
+          <label class="anon-toggle">
+            <input type="checkbox" id="anon-check">
+            <span class="toggle-pill"></span>
+            익명으로 올리기
+          </label>
+          <button class="add-submit" onclick="submitPrayer()">올리기</button>
+        </div>
+      </div>
+
+      <div class="section-label">기도제목 <span id="check-count" style="color:var(--teal)">0</span> / <span id="total-count">5</span> 체크됨</div>
+
+      <div class="prayer-list" id="prayer-list">
+        <!-- JS로 렌더링 -->
+      </div>
+
+      <div class="prayer-actions">
+        <button class="btn-add" id="add-btn" onclick="toggleAddForm()">
+          <span>+</span> 기도제목 추가
+        </button>
+      </div>
+
+      <div class="divider"></div>
+
+      <button class="btn btn-primary" onclick="goComplete()">기도 마쳤어요</button>
+    </div>
+  </div>
+
+  <!-- ── 내 기도제목 ── -->
+  <div id="screen-my" class="screen">
+    <div class="card">
+      <div class="nav">
+        <span class="nav-back" onclick="goHome()">← 홈</span>
+        <span class="nav-title">내 기도제목</span>
+        <span></span>
+      </div>
+      <div class="my-item">
+        <div class="my-item-header">
+          <span class="my-item-title">취업 준비 중에 하나님의 인도하심을 구합니다</span>
+          <div class="my-item-stats">
+            <span class="stat-badge">🙏 <strong>23</strong></span>
+          </div>
+        </div>
+        <div class="my-item-footer">
+          <span class="my-item-date">6월 20일 등록</span>
+          <div class="my-item-actions">
+            <a class="action-link answered" onclick="showToast('응답으로 표시했어요 🙌')">응답됨</a>
+            <a class="action-link" onclick="showToast('삭제되었어요')">삭제</a>
+          </div>
+        </div>
+      </div>
+      <div class="my-item">
+        <div class="my-item-header">
+          <span class="my-item-title">가족 모두 건강하게 지킬 수 있도록</span>
+          <div class="my-item-stats">
+            <span class="stat-badge">🙏 <strong>18</strong></span>
+          </div>
+        </div>
+        <div class="my-item-footer">
+          <span class="my-item-date">6월 22일 등록</span>
+          <div class="my-item-actions">
+            <a class="action-link" onclick="showToast('응답으로 표시했어요 🙌')">응답됨</a>
+            <a class="action-link" onclick="showToast('삭제되었어요')">삭제</a>
+          </div>
+        </div>
+      </div>
+      <div class="my-item">
+        <div class="my-item-header">
+          <span class="my-item-title">씨드 모임이 더욱 풍성해지도록</span>
+          <div class="my-item-stats">
+            <span class="stat-badge">🙏 <strong>31</strong></span>
+          </div>
+        </div>
+        <div class="my-item-footer">
+          <span class="my-item-date">6월 18일 등록</span>
+          <div class="my-item-actions">
+            <span class="answered-badge">✓ 응답됨</span>
+          </div>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <button class="btn btn-ghost" onclick="goHome()">홈으로</button>
+    </div>
+  </div>
+
+  <!-- ── 기도 완료 ── -->
+  <div id="screen-complete" class="screen">
+    <div class="card">
+      <div class="complete-center">
+        <span class="complete-icon">✨</span>
+        <div class="complete-title">기도를 마쳤어요</div>
+        <p class="complete-sub">오늘도 함께해주셔서 감사해요.<br>당신의 기도가 공동체를 세웁니다.</p>
+        <div class="complete-stats">
+          <div class="complete-stat">
+            <span class="complete-stat-num" id="final-count">15</span>
+            <span class="complete-stat-label">함께 기도한 사람</span>
+          </div>
+          <div class="complete-stat">
+            <span class="complete-stat-num" id="checked-num">4</span>
+            <span class="complete-stat-label">체크한 기도제목</span>
+          </div>
+          <div class="complete-stat">
+            <span class="complete-stat-num">13</span>
+            <span class="complete-stat-label">연속 기도일</span>
+          </div>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="goHome()" style="margin-bottom:10px">홈으로 돌아가기</button>
+      <button class="btn btn-ghost" onclick="goPray()">다시 기도하기</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- 토스트 -->
+<div class="toast" id="toast"></div>
+
+<script>
+const prayerData = [
+  { id:1, tag:'공식 기도제목', title:'씨드 공동체가 서로 사랑하고 세워가도록', count:42, official:true, checked:false, cooling:false },
+  { id:2, tag:'공식 기도제목', title:'이번 주 예배와 기도 모임을 위해', count:38, official:true, checked:false, cooling:false },
+  { id:3, tag:'개인 기도제목', title:'취업 준비 중인 친구를 위해 좋은 길이 열리도록', count:23, official:false, checked:false, cooling:false },
+  { id:4, tag:'개인 기도제목 · 익명', title:'가족의 건강 회복을 간구합니다', count:18, official:false, checked:false, cooling:false },
+  { id:5, tag:'개인 기도제목', title:'이번 주 결정을 앞두고 지혜를 구합니다', count:11, official:false, checked:false, cooling:false },
+];
+
+let liveCount = 14;
+
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function doLogin() {
+  showToast('카카오 로그인 완료');
+  setTimeout(() => show('screen-home'), 500);
+}
+function goHome() { show('screen-home'); }
+function goLogout() {
+  showToast('로그아웃 되었어요');
+  setTimeout(() => show('screen-splash'), 600);
+}
+function goMyPrayers() { show('screen-my'); }
+
+function goPray() {
+  renderPrayers();
+  updateCounts();
+  show('screen-pray');
+  // 실시간 카운터 시뮬레이션
+  setInterval(() => {
+    const delta = Math.random() > 0.5 ? 1 : -1;
+    liveCount = Math.max(10, Math.min(20, liveCount + delta));
+    const el = document.getElementById('live-count');
+    if (el) el.textContent = `지금 ${liveCount}명이 함께 기도 중`;
+  }, 4000);
+}
+
+function renderPrayers() {
+  const list = document.getElementById('prayer-list');
+  list.innerHTML = prayerData.map(p => `
+    <div class="prayer-item ${p.checked ? 'checked' : ''} ${p.official ? 'official' : ''} ${p.cooling ? 'cooling' : ''}"
+         id="prayer-${p.id}" onclick="checkPrayer(${p.id})">
+      <div class="check-box">
+        <span class="check-icon">✓</span>
+      </div>
+      <div class="prayer-content">
+        <div class="prayer-tag ${p.official ? 'official-tag' : ''}">${p.tag}</div>
+        <div class="prayer-title">${p.title}</div>
+        <div class="prayer-meta">
+          <span class="prayer-count">🙏 <span id="count-${p.id}">${p.count}</span>명이 기도했어요</span>
+        </div>
+      </div>
+      <div class="cooldown-bar" id="bar-${p.id}"></div>
+    </div>
+  `).join('');
+}
+
+function checkPrayer(id) {
+  const item = prayerData.find(p => p.id === id);
+  if (!item || item.cooling) {
+    if (item && item.cooling) showToast('5분 후 다시 체크할 수 있어요');
+    return;
+  }
+  item.checked = !item.checked;
+  if (item.checked) {
+    item.count++;
+    item.cooling = true;
+    const el = document.getElementById(`prayer-${id}`);
+    if (el) {
+      el.classList.add('checked', 'cooling');
+      const bar = el.querySelector('.cooldown-bar');
+      if (bar) {
+        bar.style.animation = 'none';
+        bar.offsetHeight;
+        bar.style.animation = 'cooldown 5s linear forwards';
+      }
+    }
+    const countEl = document.getElementById(`count-${id}`);
+    if (countEl) countEl.textContent = item.count;
+    showToast('기도했어요 🙏');
+    setTimeout(() => {
+      item.cooling = false;
+      const el2 = document.getElementById(`prayer-${id}`);
+      if (el2) el2.classList.remove('cooling');
+    }, 5000);
+  } else {
+    const el = document.getElementById(`prayer-${id}`);
+    if (el) el.classList.remove('checked');
+  }
+  updateCounts();
+}
+
+function updateCounts() {
+  const checked = prayerData.filter(p => p.checked).length;
+  const total = prayerData.length;
+  const cc = document.getElementById('check-count');
+  const tc = document.getElementById('total-count');
+  if (cc) cc.textContent = checked;
+  if (tc) tc.textContent = total;
+}
+
+function toggleAddForm() {
+  const form = document.getElementById('add-form');
+  form.classList.toggle('open');
+  if (form.classList.contains('open')) {
+    document.getElementById('new-prayer-text').focus();
+  }
+}
+
+function submitPrayer() {
+  const text = document.getElementById('new-prayer-text').value.trim();
+  if (!text) { showToast('기도제목을 입력해주세요'); return; }
+  const anon = document.getElementById('anon-check').checked;
+  prayerData.push({
+    id: Date.now(),
+    tag: anon ? '개인 기도제목 · 익명' : '개인 기도제목',
+    title: text,
+    count: 0,
+    official: false,
+    checked: false,
+    cooling: false
+  });
+  document.getElementById('new-prayer-text').value = '';
+  document.getElementById('add-form').classList.remove('open');
+  renderPrayers();
+  updateCounts();
+  showToast('기도제목이 등록되었어요');
+}
+
+function goComplete() {
+  const checked = prayerData.filter(p => p.checked).length;
+  document.getElementById('checked-num').textContent = checked;
+  document.getElementById('final-count').textContent = liveCount + 1;
+  show('screen-complete');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+</script>
+</body>
+</html>
